@@ -1,10 +1,14 @@
 syntax = "proto3";
 
 package dataservice;
+import "google/protobuf/empty.proto";
 
 import "myproto/datarequest.proto";
 import "myproto/dataresponse.proto";
+import "myproto/heartbeatresponse.proto";
 
 service DataService {
   rpc GetData (DataRequest) returns (DataResponse);
+
+  rpc HeartBeat (google.protobuf.Empty) returns (stream HeartBeatResponse) {}
 }

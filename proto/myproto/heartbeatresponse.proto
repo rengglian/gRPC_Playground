@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dataservice;
+
+enum ServerState {
+    UNKNOWN = 0;
+    READY = 1;
+    ERROR = 3;
+  }
+  
+message HeartBeatResponse {
+    string status = 1;
+    int64 counter = 2;
+    repeated string messages = 3;
+    repeated double values = 4;
+    bool state = 5;
+    ServerState serverState = 6;
+}

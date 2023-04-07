@@ -10,10 +10,15 @@
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
+using grpc::ServerWriter;
 using grpc::Status;
+using grpc::ClientContext;
+using grpc::ClientReader;
+
 using dataservice::DataService;
 using dataservice::DataRequest;
 using dataservice::DataResponse;
+using dataservice::HeartBeatResponse;
 
 class Logger {
 public:
@@ -55,6 +60,18 @@ public:
       server_thread_.join();
     }
   }
+
+  Status HeartBeat(ServerContext* context, const ::google::protobuf::Empty* request, ServerWriter<HeartBeatResponse>* writer) override {
+    HeartBeatResponse response;
+    while (true) {
+      response.set_status("Alive");
+      if (!writer->Write(response)) {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    return Status::OK;
+  }  
 
 private:
   Status GetData(ServerContext *context, const DataRequest *request, DataResponse *response) override {

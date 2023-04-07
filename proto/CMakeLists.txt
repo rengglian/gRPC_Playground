@@ -9,6 +9,7 @@ find_package(Threads)
 #
 set(PROTO_FILES
     myproto/datarequest.proto
+    myproto/heartbeatresponse.proto
     myproto/dataresponse.proto
     myproto/messages.proto
 )

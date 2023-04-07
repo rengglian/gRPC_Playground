@@ -5,11 +5,14 @@
 #include "myproto/messages.grpc.pb.h"
 
 using grpc::Channel;
-using grpc::ClientContext;
 using grpc::Status;
+using grpc::ClientContext;
+using grpc::ClientReader;
+
 using dataservice::DataService;
 using dataservice::DataRequest;
 using dataservice::DataResponse;
+using dataservice::HeartBeatResponse;
 
 class DataClient {
 public:
@@ -59,15 +62,60 @@ private:
   std::thread client_thread_;
 };
 
+class ServerStreamClient {
+public:
+  ServerStreamClient(std::shared_ptr<Channel> channel)
+      : stub_(DataService::NewStub(channel)), stop_heartbeat_(false) {}
+
+  void StartHeartBeat() {
+    heartbeat_thread_ = std::thread(&ServerStreamClient::RunHeartBeat, this);
+  }
+
+  void StopHeartBeat() {
+    stop_heartbeat_.store(true);
+    if (heartbeat_thread_.joinable()) {
+      heartbeat_thread_.join();
+    }
+  }
+
+private:
+  void RunHeartBeat() {
+    ::google::protobuf::Empty request;
+    ClientContext context;
+    HeartBeatResponse response;
+    std::unique_ptr<ClientReader<HeartBeatResponse>> reader(stub_->HeartBeat(&context, request));
+
+    while (!stop_heartbeat_.load() && reader->Read(&response)) {
+      std::cout << "Heartbeat status: " << response.status() << std::endl;
+    }
+
+    Status status = reader->Finish();
+    if (!status.ok()) {
+      std::cout << "HeartBeat RPC failed: " << status.error_message() << std::endl;
+    }
+  }
+
+  std::unique_ptr<DataService::Stub> stub_;
+  std::atomic<bool> stop_heartbeat_;
+  std::thread heartbeat_thread_;
+};
+
+
+
 int main(int argc, char **argv) {
-  DataClient client(grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()));
+  auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 
-  client.StartClient();
+  DataClient data_client(channel);
+  ServerStreamClient server_stream_client(channel);
 
-  // Wait for user input to stop the client
+  data_client.StartClient();
+  server_stream_client.StartHeartBeat();
+
+  // Wait for user input to stop the client and heartbeat
   std::cin.get();
 
-  client.StopClient();
+  server_stream_client.StopHeartBeat();
+  data_client.StopClient();
 
   return 0;
 }
