@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/src/server/src/**",
                 "${workspaceFolder}/build/proto/"
             ],
             "defines": [],
