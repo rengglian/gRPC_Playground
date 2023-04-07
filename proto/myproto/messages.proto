@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package dataservice;
+
+import "myproto/datarequest.proto";
+import "myproto/dataresponse.proto";
+
+service DataService {
+  rpc GetData (DataRequest) returns (DataResponse);
+}

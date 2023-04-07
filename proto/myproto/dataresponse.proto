@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package dataservice;
+
+message DataResponse {
+  string data = 1;
+}

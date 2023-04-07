@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package dataservice;
+
+message DataRequest {
+  string client_id = 1;
+}
