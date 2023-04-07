@@ -29,8 +29,8 @@ target_include_directories(${EXECUTABLE_NAME_SERVER}
   )
   
 target_link_libraries(${EXECUTABLE_NAME_SERVER}
-PRIVATE
-myproto
-rt
-pthread
+  PRIVATE
+  myproto
+  rt
+  pthread
 )
