@@ -2,6 +2,7 @@
 #include <memory>
 #include <mutex>
 #include <fstream>
+#include <vector>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
@@ -47,14 +48,21 @@ void DataServiceImpl::StopServer()
 Status DataServiceImpl::HeartBeat(ServerContext *context, const ::google::protobuf::Empty *request, ServerWriter<HeartBeatResponse> *writer)
 {
   HeartBeatResponse response;
+
+  std::vector<double> sampleVector{ 1.234, 3.14, 5.66 };
+
   while (true)
   {
     response.set_status("Alive");
+    sampleVector[0] += 0.01;
+    sampleVector[1] += 0.03;
+    sampleVector[2] -= 0.02;
+    *response.mutable_values() = {sampleVector.begin(), sampleVector.end()};
     if (!writer->Write(response))
     {
       break;
     }
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
   return Status::OK;
 }

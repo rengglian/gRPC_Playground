@@ -38,12 +38,17 @@ void ServerStreamClient::RunHeartBeat()
 
         while (!stop_heartbeat_.load() && reader->Read(&response))
         {
-            std::cout << "Heartbeat status: " << response.status() << std::endl;
+            std::vector<double> v(response.mutable_values()->begin(), response.mutable_values()->end());
+            std::cout << "Heartbeat status: " << response.status() << ": ";
+            for (auto const& c : v)
+                std::cout << c << ' ';
+            std::cout << std::endl;
         }
 
         Status status = reader->Finish();
         if (!status.ok())
         {
+            
             std::cout << "HeartBeat RPC failed: " << status.error_message() << std::endl;
         }
 
