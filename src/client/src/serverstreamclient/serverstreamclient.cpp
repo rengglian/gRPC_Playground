@@ -29,19 +29,28 @@ void ServerStreamClient::StopHeartBeat()
 
 void ServerStreamClient::RunHeartBeat()
 {
-    ::google::protobuf::Empty request;
-    ClientContext context;
-    HeartBeatResponse response;
-    std::unique_ptr<ClientReader<HeartBeatResponse>> reader(stub_->HeartBeat(&context, request));
-
-    while (!stop_heartbeat_.load() && reader->Read(&response))
+    while (!stop_heartbeat_.load())
     {
-        std::cout << "Heartbeat status: " << response.status() << std::endl;
-    }
+        ::google::protobuf::Empty request;
+        ClientContext context;
+        HeartBeatResponse response;
+        std::unique_ptr<ClientReader<HeartBeatResponse>> reader(stub_->HeartBeat(&context, request));
 
-    Status status = reader->Finish();
-    if (!status.ok())
-    {
-        std::cout << "HeartBeat RPC failed: " << status.error_message() << std::endl;
+        while (!stop_heartbeat_.load() && reader->Read(&response))
+        {
+            std::cout << "Heartbeat status: " << response.status() << std::endl;
+        }
+
+        Status status = reader->Finish();
+        if (!status.ok())
+        {
+            std::cout << "HeartBeat RPC failed: " << status.error_message() << std::endl;
+        }
+
+        if (!stop_heartbeat_.load())
+        {
+            std::cout << "Attempting to reconnect in 5 seconds..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
     }
 }
